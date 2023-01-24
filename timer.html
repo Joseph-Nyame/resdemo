@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Stopwatch</title>
+</head>
+<body>
+<h1>Stopwatch</h1>
+<div class="stopwatch">
+    <div class="controls">
+        <button class="start">Start</button>
+        <button class="stop">Stop</button>
+        <button class="reset">Reset</button>
+        ||stop on:
+        <input class="min" placeholder="min" type="text" style="width: 30px" />:
+        <input class="sec" placeholder="sec" type="text" style="width: 30px" />:
+        <input class="ms" placeholder="ms" type="text" style="width: 30px" />
+        <button class="save">save</button>
+        <div class="savedTimeBlock" style="display: none">
+            saved time:
+            <div style="display: inline-block" class="time"></div>
+        </div>
+    </div>
+    <div class="display">
+        <span class="minutes">00</span>:<span class="seconds">00</span>:<span
+            class="centiseconds"
+    >00</span
+    >
+    </div>
+</div>
+<script src="stopwatch.js"></script>
+<script>
+    var ss = document.getElementsByClassName("stopwatch");
+
+[].forEach.call(ss, function(s) {
+  var currentTimer = 0,
+    interval = 0,
+    lastUpdateTime = new Date().getTime(),
+    timeToStop = {
+      min:null,
+      sec:null,
+      ms:null
+    },
+    start = s.querySelector("button.start"),
+    stop = s.querySelector("button.stop"),
+    reset = s.querySelector("button.reset"),
+    mins = s.querySelector("span.minutes"),
+    secs = s.querySelector("span.seconds"),
+    cents = s.querySelector("span.centiseconds"),
+    minutes = s.querySelector(".min"),
+    seconds = s.querySelector(".sec"),
+    milliseconds = s.querySelector(".ms"),
+    savedTimeBlock = s.querySelector(".savedTimeBlock"),
+    time = s.querySelector(".time"),
+    save = s.querySelector(".save");
+
+    start.addEventListener("click", startTimer);
+    stop.addEventListener("click", stopTimer);
+    save.addEventListener("click", saveStopTime);
+    reset.addEventListener("click", resetTimer);
+
+  function pad(n) {
+    return ("00" + n).substr(-2);
+  }
+
+  function saveStopTime() {
+    let min = timeToStop.min = pad(+minutes.value),
+      sec = timeToStop.sec = pad(+seconds.value),
+      ms = timeToStop.ms = pad(+milliseconds.value);
+
+    if (+min || +sec || +ms) {
+      showSavedTimeBlock(min, sec, ms)
+    } else {
+      killSavedTimeBlock()
+    }
+  }
+
+  const showSavedTimeBlock = (min, sec, ms) => {
+    savedTimeBlock.style.display = 'inline-block';
+
+    time.innerText = `${min}:${sec}:${ms}:`
+  };
+
+  const killSavedTimeBlock = () => {
+    savedTimeBlock.style.display = 'none';
+    timeToStop.min = null;
+    timeToStop.sec = null;
+    timeToStop.ms = null;
+
+    time.innerText = ''
+  };
+
+  function update() {
+    var now = new Date().getTime(),
+      dt = now - lastUpdateTime;
+
+    currentTimer += dt;
+
+    var time = new Date(currentTimer);
+
+    let min = pad(time.getMinutes());
+    let sec = pad(time.getSeconds());
+    let ms = pad(Math.floor(time.getMilliseconds() / 10));
+    mins.innerHTML = min;
+    secs.innerHTML = sec;
+    cents.innerHTML = ms;
+
+    let ts = timeToStop;
+    if (ts.min === min && ts.sec === sec && ts.ms === ms) {
+      stopTimer()
+    } else {
+      lastUpdateTime = now;
+    }
+  }
+
+  function startTimer() {
+    if (!interval) {
+      lastUpdateTime = new Date().getTime();
+      interval = setInterval(update, 1);
+    }
+  }
+
+  function stopTimer() {
+    clearInterval(interval);
+    interval = 0;
+  }
+
+  function resetTimer() {
+    stopTimer();
+    killSavedTimeBlock()
+    currentTimer = 0;
+
+    mins.innerHTML = secs.innerHTML = cents.innerHTML = pad(0);
+  }
+});
+</script>
+</body>
+</html>
